@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Email List</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Roboto;
+        }
+
+        .container {
+            max-width: 500px;
+            margin: 20px auto;
+            border: 1px solid #ccc;
+            padding: 20px;
+        }
+
+        #copy-content {
+            max-height: 50vh;
+            overflow-y: auto;
+            border-top: 1px solid #ddd;
+            padding-top: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+
+        <h1>Grouped Email List</h1>
+
+        <br>
+        {% if status.active %}
+        <form action="{% url 'stop-crawling' %}" method="POST">
+            {% csrf_token %}
+            <button type="submit">Stop Crawling</button>
+        </form>
+        {% else %}
+        <form action="{% url 'fetch-emails' %}" method="post">
+            {% csrf_token %}
+            <input type="text" name="url" id="">
+            <button type="submit">Fetch</button>
+        </form>
+        {% endif %}
+        <br>
+
+        <h5>Date: {{ current_date|date:"d M y" }}</h5>
+        <br>
+        <h5>Status: {{ status.active|yesno:"Running,Stopped" }}</h5>
+        <br>
+        <h5>Total: {{ emails|length }} / {{ emails_count|length }}</h5>
+        <br>
+        <p style="word-wrap: break-word;">Last URL: {{ last_url }}</p>
+        <br>
+        <button id="copy-to-clipboard">Copy to Clipboard</button>
+        <br>
+        <br>
+        <br>
+        <div id="copy-content">
+            {% for email in emails %}
+            <a href="{% url 'hide-email' email.id %}">
+                {{ email.email }}
+            </a>
+            <br>
+            {% endfor %}
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-12">
+                <form action="{% url 'skip_extension' %}" method="post">
+                    {% csrf_token %}
+                    <label for="" class="form-label">Skip Extensions ({{ skip_extensions_count }})</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="extension" id="">
+                        <button class="btn btn-primary" type="submit">Add</button>
+                    </div>
+                </form>
+                <div class="copy-content">
+                    <ul>
+                        {% for skip_extension in skip_extensions %}
+                        <li>{{ skip_extension }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-12 mt-4">
+                <form action="{% url 'skip_site' %}" method="post">
+                    {% csrf_token %}
+                    <label for="" class="form-label">Skip Sites ({{ skip_sites_count }})</label>
+                    <div class="input-group">
+                        <input class="form-control" type="text" name="url" id="">
+                        <button class="btn btn-primary" type="submit">Add</button>
+                    </div>
+                </form>
+                <div class="copy-content">
+                    <ul>
+                        {% for skip_site in skip_sites %}
+                        <li>{{ skip_site }}</li>
+                        {% endfor %}
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            document.getElementById('copy-to-clipboard').addEventListener('click', function () {
+                var content = document.getElementById('copy-content').innerText;
+
+                var textarea = document.createElement('textarea');
+                textarea.value = content;
+
+                document.body.appendChild(textarea);
+
+                textarea.select();
+                document.execCommand('copy');
+
+                document.body.removeChild(textarea);
+
+                alert('Content copied to clipboard!');
+            });
+        });
+    </script>
+
+</body>
+
+</html>
